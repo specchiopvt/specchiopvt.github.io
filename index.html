@@ -84,8 +84,7 @@
   .eco{position:absolute;top:0;left:0;margin:0;width:max-content;padding:.85rem 1.1rem;
     border-radius:18px 18px 18px 4px;background:rgba(243,238,230,.06);border:1px solid rgba(243,238,230,.1);
     color:rgba(243,238,230,.6);font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.05rem;line-height:1.3;
-    text-align:center;filter:blur(.2px);opacity:0;transition:opacity .8s ease;}
-  .eco.visibile{opacity:1;}
+    text-align:center;filter:blur(.2px);}
   .eco cite{display:block;margin-top:.45rem;font-family:"IBM Plex Sans",sans-serif;font-style:normal;font-weight:600;
     font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(228,38,46,.7);}
   header,main,footer{position:relative;z-index:1;}
@@ -575,7 +574,7 @@
           if(ost.some(function(o){return urta(r,o);})||prese.some(function(o){return urta(r,o);})) continue;
           d.style.left=x+'px'; d.style.top=y+'px';
           d.style.transform='rotate('+(Math.random()*10-5).toFixed(1)+'deg)';
-          prese.push(r); requestAnimationFrame(function(){d.classList.add('visibile');}); return true;
+          prese.push(r); return true;
         }
         return false;
       }
@@ -588,10 +587,16 @@
       }
       for(var n=0;prese.length<obiettivo&&n<40;n++){var d=crea(); if(!posa(d,null)) d.remove();}
     }
-    var attesa; function ridisponi(){clearTimeout(attesa); attesa=setTimeout(disponi,250);}
-    window.addEventListener('load',disponi);
-    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(ridisponi);
-    window.addEventListener('resize',ridisponi);
+    var attesa, larghezza=0, avviato=false;
+    function avvia(){ if(avviato) return; avviato=true; larghezza=document.documentElement.clientWidth; disponi(); }
+    var caricata=new Promise(function(ok){ if(document.readyState==='complete') ok(); else window.addEventListener('load',ok,{once:true}); });
+    var caratteri=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+    Promise.all([caricata,caratteri]).then(avvia,avvia);
+    window.addEventListener('resize',function(){
+      var w=document.documentElement.clientWidth;
+      if(!avviato||w===larghezza) return;
+      larghezza=w; clearTimeout(attesa); attesa=setTimeout(disponi,300);
+    });
   })();
   if(/^https?:/.test(location.protocol)){
     document.querySelectorAll('a.clip').forEach(function(a){
